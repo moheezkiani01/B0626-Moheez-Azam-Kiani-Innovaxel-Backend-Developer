@@ -13,20 +13,6 @@ It supports:
 - Persistent storage using SQLite
 - Protection against duplicate registrations and overbooking
 
-## Repository Naming Format
-
-Use this format for your GitHub repository:
-
-```text
-B0626 - Your Name - Innovaxel - Role
-```
-
-Example:
-
-```text
-B0626 - Israr Azam Kiani - Innovaxel - Backend Developer
-```
-
 ## Tech Stack
 
 - Python 3.10+
