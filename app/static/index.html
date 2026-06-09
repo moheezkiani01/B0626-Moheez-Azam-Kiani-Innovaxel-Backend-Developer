@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Event Registration System</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <header class="header">
+    <div>
+      <h1>Event Registration System</h1>
+      <p>Create events, register users, view seats, and cancel registrations.</p>
+    </div>
+    <a class="docs-link" href="/docs" target="_blank">API Docs</a>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h2>Create Event</h2>
+      <form id="createEventForm">
+        <label>
+          Event Name
+          <input type="text" id="eventName" placeholder="Python Workshop" required />
+        </label>
+
+        <label>
+          Total Seats
+          <input type="number" id="totalSeats" min="1" placeholder="50" required />
+        </label>
+
+        <label>
+          Event Date and Time
+          <input type="datetime-local" id="eventDate" required />
+        </label>
+
+        <button type="submit">Create Event</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Register User</h2>
+      <form id="registerForm">
+        <label>
+          User Name
+          <input type="text" id="registerUserName" placeholder="Ali" required />
+        </label>
+
+        <label>
+          Event ID
+          <input type="number" id="registerEventId" min="1" placeholder="1" required />
+        </label>
+
+        <button type="submit">Register</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Cancel Registration</h2>
+      <form id="cancelForm">
+        <label>
+          User Name
+          <input type="text" id="cancelUserName" placeholder="Ali" required />
+        </label>
+
+        <label>
+          Event ID
+          <input type="number" id="cancelEventId" min="1" placeholder="1" required />
+        </label>
+
+        <button type="submit" class="danger">Cancel Registration</button>
+      </form>
+    </section>
+
+    <section class="card wide">
+      <div class="events-header">
+        <h2>Events</h2>
+
+        <div class="filters">
+          <label class="checkbox">
+            <input type="checkbox" id="sortByDate" />
+            Sort by date
+          </label>
+
+          <label class="checkbox">
+            <input type="checkbox" id="upcomingOnly" />
+            Upcoming only
+          </label>
+
+          <button id="refreshEvents" type="button">Refresh</button>
+        </div>
+      </div>
+
+      <div id="message"></div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Event Name</th>
+              <th>Date</th>
+              <th>Total Seats</th>
+              <th>Registrations</th>
+              <th>Available Seats</th>
+            </tr>
+          </thead>
+
+          <tbody id="eventsTableBody">
+            <tr>
+              <td colspan="6" class="empty">No events loaded yet.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>
