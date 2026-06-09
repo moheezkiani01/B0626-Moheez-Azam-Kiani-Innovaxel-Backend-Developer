@@ -1,74 +1,197 @@
 # Event Registration System API
 
-A simple Event Registration System API built with **Python, FastAPI, and SQLite**.
+A simple Event Registration System built with **FastAPI**, **SQLite**, and a basic **HTML/CSS/JavaScript frontend**.
 
-It supports:
+This project allows users to create events, register users for events, cancel registrations, and track available seats.
 
-- Create events
-- Register users for events
-- View events with available seats and total registrations
-- Sort events by date
-- Filter upcoming events only
-- Cancel registrations
-- Persistent storage using SQLite
-- Protection against duplicate registrations and overbooking
+---
+
+## Project Overview
+
+The system supports:
+
+- Creating events
+- Registering users for events
+- Viewing all events
+- Sorting events by date
+- Filtering upcoming events only
+- Cancelling registrations
+- Tracking available seats
+- Preventing duplicate registrations
+- Preventing overbooking
+- Persisting data between runs using SQLite
+
+---
 
 ## Tech Stack
 
-- Python 3.10+
+- Python
 - FastAPI
 - SQLite
+- HTML
+- CSS
+- JavaScript
 - Uvicorn
 
-## Setup
+---
 
-Create a virtual environment:
+## Project Structure
 
-```bash
-python -m venv venv
+```text
+event-registration-api/
+├── run.py
+├── requirements.txt
+├── README.md
+├── .gitignore
+├── app/
+│   ├── __init__.py
+│   ├── main.py
+│   ├── database.py
+│   ├── models.py
+│   ├── schemas.py
+│   └── static/
+│       ├── index.html
+│       ├── styles.css
+│       └── script.js
 ```
 
-Activate it:
+---
 
-Windows:
+## Setup Instructions
 
-```bash
-venv\Scripts\activate
-```
-
-macOS/Linux:
+### 1. Clone the Repository
 
 ```bash
-source venv/bin/activate
+git clone YOUR_REPOSITORY_LINK
 ```
 
-Install dependencies:
+```bash
+cd event-registration-api
+```
+
+---
+
+### 2. Create Virtual Environment
+
+```bash
+python -m venv myenv
+```
+
+---
+
+### 3. Activate Virtual Environment
+
+For Windows:
+
+```bash
+myenv\Scripts\activate
+```
+
+For macOS/Linux:
+
+```bash
+source myenv/bin/activate
+```
+
+---
+
+### 4. Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Run the API:
+---
+
+## Run the Project
+
+### Option 1: Run with Command
 
 ```bash
-uvicorn app.main:app --reload
+uvicorn app.main:app
 ```
 
-Open Swagger documentation:
+Then open:
+
+```text
+http://127.0.0.1:8000
+```
+
+---
+
+### Option 2: Run by Clicking Run in VS Code
+
+Open:
+
+```text
+run.py
+```
+
+Click the **Run** button.
+
+The browser will open automatically at:
+
+```text
+http://127.0.0.1:8000
+```
+
+---
+
+## Frontend
+
+The project includes a simple frontend.
+
+Frontend URL:
+
+```text
+http://127.0.0.1:8000
+```
+
+From the frontend, users can:
+
+- Create an event
+- Register a user for an event
+- Cancel registration
+- View all events
+- Check available seats
+- Sort events by date
+- Filter upcoming events only
+
+---
+
+## API Documentation
+
+FastAPI provides automatic Swagger documentation.
+
+Open:
 
 ```text
 http://127.0.0.1:8000/docs
 ```
 
+---
+
 ## API Endpoints
 
-### Health Check
+---
+
+## Health Check
 
 ```http
-GET /
+GET /health
 ```
 
-### Create Event
+Response:
+
+```json
+{
+  "message": "Event Registration System API is running"
+}
+```
+
+---
+
+## Create Event
 
 ```http
 POST /events
@@ -90,7 +213,34 @@ Rules:
 - Total seats must be greater than 0.
 - Event date must be in the future.
 
-### View Events
+Successful response:
+
+```json
+{
+  "id": 1,
+  "name": "Python Workshop",
+  "total_seats": 50,
+  "event_date": "2030-06-01T10:00:00+00:00"
+}
+```
+
+Possible errors:
+
+```json
+{
+  "detail": "Event name already exists"
+}
+```
+
+```json
+{
+  "detail": "Event date must be in the future"
+}
+```
+
+---
+
+## View Events
 
 ```http
 GET /events
@@ -109,12 +259,39 @@ Example:
 GET /events?sort_by_date=true&upcoming_only=true
 ```
 
-Response includes:
+Response example:
 
+```json
+[
+  {
+    "id": 1,
+    "name": "Python Workshop",
+    "total_seats": 50,
+    "event_date": "2030-06-01T10:00:00+00:00",
+    "available_seats": 49,
+    "total_registrations": 1
+  }
+]
+```
+
+This endpoint displays:
+
+- Event ID
+- Event name
+- Event date
+- Total seats
+- Total active registrations
 - Available seats
-- Total registrations
 
-### Register User for Event
+Available seats are calculated using:
+
+```text
+Available Seats = Total Seats - Active Registrations
+```
+
+---
+
+## Register User for Event
 
 ```http
 POST /registrations
@@ -131,12 +308,47 @@ Request body:
 
 Rules:
 
-- Cannot register if the event is full.
-- Same user cannot register twice for the same event.
+- Event must exist.
+- Event must not be full.
+- Same user cannot register twice for the same active event.
 - Registration timestamp is stored.
-- Concurrent registration requests are protected using a transaction.
+- Race condition protection is applied.
 
-### Cancel Registration
+Successful response:
+
+```json
+{
+  "registration_id": 1,
+  "event_id": 1,
+  "user_name": "Ali",
+  "status": "active",
+  "registered_at": "2030-01-01T10:00:00+00:00"
+}
+```
+
+Possible errors:
+
+```json
+{
+  "detail": "Event not found"
+}
+```
+
+```json
+{
+  "detail": "Event is full"
+}
+```
+
+```json
+{
+  "detail": "User is already registered for this event"
+}
+```
+
+---
+
+## Cancel Registration
 
 ```http
 DELETE /registrations
@@ -153,59 +365,139 @@ Request body:
 
 Rules:
 
-- Seat becomes available again.
-- Cancelled users do not appear in active registrations.
-- Repeated cancel requests are handled safely.
+- Only active registrations can be cancelled.
+- Cancelled users are not counted in active registrations.
+- Seat becomes available again after cancellation.
+- Registration history is kept.
 
-## Design Decisions
-
-### Why SQLite?
-
-SQLite is simple, persistent between runs, and supports transactions. It is suitable for this assessment because authentication and distributed infrastructure are not required.
-
-### How overbooking is prevented
-
-Registration uses a database transaction with:
-
-```sql
-BEGIN IMMEDIATE
-```
-
-This locks the database for writing during registration. While one registration is being processed, another request cannot update the same event at the same time.
-
-The code checks active registration count inside the same transaction before inserting a new registration.
-
-### How duplicate registration is prevented
-
-The database has a unique constraint:
-
-```sql
-UNIQUE(event_id, user_name, status)
-```
-
-This prevents the same user from having multiple active registrations for the same event.
-
-### Why cancelled registrations are kept
-
-Cancelled records are not deleted. Their status is changed to:
-
-```text
-cancelled
-```
-
-This keeps history and makes registration tracking cleaner.
-
-## Example Error Responses
-
-Event already exists:
+Successful response:
 
 ```json
 {
-  "detail": "Event name already exists"
+  "message": "Registration cancelled successfully",
+  "event_id": 1,
+  "user_name": "Ali"
 }
 ```
 
-Event full:
+Possible error:
+
+```json
+{
+  "detail": "Active registration not found"
+}
+```
+
+---
+
+## Database Design
+
+The project uses SQLite.
+
+Database file:
+
+```text
+events.db
+```
+
+This file is created automatically when the project runs.
+
+---
+
+## Events Table
+
+Stores event information.
+
+Fields:
+
+- `id`
+- `name`
+- `total_seats`
+- `event_date`
+- `created_at`
+
+Important rules:
+
+- `name` is unique.
+- `total_seats` must be greater than 0.
+
+---
+
+## Registrations Table
+
+Stores event registration records.
+
+Fields:
+
+- `id`
+- `event_id`
+- `user_name`
+- `status`
+- `registered_at`
+- `cancelled_at`
+
+Registration status can be:
+
+```text
+active
+cancelled
+```
+
+Cancelled registrations are not deleted. They are marked as cancelled so that history is preserved.
+
+---
+
+## Race Condition and Overbooking Prevention
+
+The hidden tricky requirement is to prevent overbooking when multiple users register at the same time.
+
+This project handles that using SQLite transactions:
+
+```python
+cursor.execute("BEGIN IMMEDIATE")
+```
+
+This locks the database for writing during the registration process.
+
+The system checks available seats and inserts the registration inside the same transaction. This prevents two users from taking the same last seat at the same time.
+
+---
+
+## Duplicate Registration Prevention
+
+The system prevents the same user from registering twice for the same active event using a unique index:
+
+```sql
+CREATE UNIQUE INDEX IF NOT EXISTS unique_active_registration
+ON registrations(event_id, user_name)
+WHERE status = 'active'
+```
+
+This allows a user to register again only after their previous registration has been cancelled.
+
+---
+
+## Validation Rules
+
+The system validates:
+
+- Empty event names
+- Duplicate event names
+- Negative or zero seats
+- Past event dates
+- Empty user names
+- Invalid event IDs
+- Duplicate active registrations
+- Full events
+- Cancelling non-existing active registrations
+
+---
+
+## Error Handling
+
+The API returns clear error messages.
+
+Examples:
 
 ```json
 {
@@ -213,7 +505,11 @@ Event full:
 }
 ```
 
-Duplicate registration:
+```json
+{
+  "detail": "Event name already exists"
+}
+```
 
 ```json
 {
@@ -221,35 +517,108 @@ Duplicate registration:
 }
 ```
 
-Past event date:
+---
 
-```json
-{
-  "detail": "Event date must be in the future"
-}
+## Testing the Project
+
+You can test the project in three ways:
+
+### 1. Frontend
+
+Open:
+
+```text
+http://127.0.0.1:8000
 ```
 
-## Running Tests Manually
+### 2. Swagger Docs
 
-Use Swagger UI:
+Open:
 
 ```text
 http://127.0.0.1:8000/docs
 ```
 
-Or use curl/Postman.
+### 3. Curl/Postman
 
-## Project Structure
+Example curl request:
+
+```bash
+curl -X POST "http://127.0.0.1:8000/events" \
+-H "Content-Type: application/json" \
+-d '{
+  "name": "Test Event",
+  "total_seats": 10,
+  "event_date": "2030-06-01T10:00:00"
+}'
+```
+
+---
+
+## Example Demo Flow
+
+For video or interview demonstration:
+
+1. Start the server.
+2. Open the frontend.
+3. Create an event with a future date.
+4. Register a user.
+5. Register another user.
+6. Try duplicate registration.
+7. Try registering when event is full.
+8. Cancel a registration.
+9. Show that the available seat increases.
+10. Open Swagger docs and show API endpoints.
+
+---
+
+## Important Notes
+
+Do not upload virtual environment folders like:
 
 ```text
-event-registration-api/
-├── app/
-│   ├── __init__.py
-│   ├── database.py
-│   ├── main.py
-│   ├── models.py
-│   └── schemas.py
-├── requirements.txt
-├── README.md
-└── .gitignore
+myenv/
+venv/
 ```
+
+Do not upload the local database file:
+
+```text
+events.db
+```
+
+These files should be ignored using `.gitignore`.
+
+Recommended `.gitignore`:
+
+```text
+__pycache__/
+*.pyc
+venv/
+myenv/
+.env
+events.db
+
+```
+
+## Author
+
+Moheez Azam Kiani
+
+---
+
+## Summary
+
+This Event Registration System implements all required features from the assessment:
+
+- Event creation
+- User registration
+- Event listing
+- Seat availability tracking
+- Registration cancellation
+- Persistent storage
+- Input validation
+- Race condition protection
+- Duplicate request handling
+- Proper error messages
+- Simple frontend interface
